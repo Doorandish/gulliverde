@@ -10,75 +10,132 @@ interface ItineraryParams {
   weather?: any;
 }
 
-const MOCK_ITINERARY = {
-  destination: "Garmisch-Partenkirchen",
-  durationDays: 2,
-  totalBudget: 125,
-  co2SavedPercent: 78,
-  days: [
+export const generateItinerary = async (params: ItineraryParams) => {
+  const destination = params.destination;
+  console.log(`[Gemini] Generating itinerary for destination: ${destination}`);
+
+  const MOCK_ITINERARY = {
+    destination: destination,
+    durationDays: 2,
+    totalBudget: 140,
+    co2SavedPercent: 78,
+    trainDetails: {
+      recommendedRoute: "Direktverbindung / RE / ICE",
+      ticketStartingPrice: 39
+    },
+    days: [
+      {
+        dayNumber: 1,
+        title: "Ankunft & Altstadt-Erkundung",
+        activities: [
+          {
+            timeSlot: "Morgen",
+            title: "Ankunft am Hauptbahnhof & Kaffee in der Altstadt",
+            description: "Bummel durch die historischen Gassen und regionaler Frühstücksstopp.",
+            estimatedPrice: 12,
+            weatherNote: "Ideal bei jedem Wetter"
+          },
+          {
+            timeSlot: "Nachmittag",
+            title: "Kultureller Rundgang & Schloss/Museumsbesuch",
+            description: "Besichtigung der wichtigsten Sehenswürdigkeiten der Stadt.",
+            estimatedPrice: 15,
+            weatherNote: "Überdacht"
+          },
+          {
+            timeSlot: "Abend",
+            title: "Fränkisches/Regionales Abendessen & Ausklang",
+            description: "Typische Spezialitäten in einer traditionellen Gaststätte genießen.",
+            estimatedPrice: 28,
+            weatherNote: "Gemütliche Atmosphäre"
+          }
+        ]
+      },
+      {
+        dayNumber: 2,
+        title: "Natur, Aussicht & Abreise",
+        activities: [
+          {
+            timeSlot: "Morgen",
+            title: "Frühstück & Parkspaziergang",
+            description: "Entspannter Start in den Tag im Hofgarten oder Stadtpark.",
+            estimatedPrice: 10,
+            weatherNote: "Frische Morgenluft"
+          },
+          {
+            timeSlot: "Nachmittag",
+            title: "Lokales Handwerk & Souvenirs vor der Rückfahrt",
+            description: "Letzte Entdeckungen und entspannte Bahnrückreise.",
+            estimatedPrice: 15,
+            weatherNote: "Trocken"
+          }
+        ]
+      }
+    ]
+  };
+
+  if (!env.GEMINI_API_KEY) {
+    console.log(`ℹ️ No GEMINI_API_KEY found, returning mock itinerary for ${destination}`);
+    return MOCK_ITINERARY;
+  }
+
+  const prompt = `You are an expert travel planner for Germany and Europe. 
+Generate a comprehensive 2-day weekend itinerary for the destination "${destination}".
+Return ONLY a valid raw JSON object (without markdown blocks) matching this format:
+{
+  "destination": "${destination}",
+  "durationDays": 2,
+  "totalBudget": 140,
+  "co2SavedPercent": 78,
+  "trainDetails": {
+    "recommendedRoute": "Direktverbindung / RE / ICE",
+    "ticketStartingPrice": 39
+  },
+  "days": [
     {
-      dayNumber: 1,
-      title: "Ankunft & Altstadt",
-      activities: [
+      "dayNumber": 1,
+      "title": "Ankunft & Altstadt-Erkundung",
+      "activities": [
         {
-          timeSlot: "Morgen",
-          title: "Zug nach Garmisch-Partenkirchen",
-          description: "Entspannte Zugfahrt von München",
-          estimatedPrice: 25,
-          weatherNote: "Sonnig"
+          "timeSlot": "Morgen",
+          "title": "Ankunft am Hauptbahnhof & Kaffee in der Altstadt",
+          "description": "Bummel durch die historischen Gassen und regionaler Frühstücksstopp.",
+          "estimatedPrice": 12,
+          "weatherNote": "Ideal bei jedem Wetter"
         },
         {
-          timeSlot: "Nachmittag",
-          title: "Mittagessen im Wirtshaus",
-          description: "Bayerische Spezialitäten genießen",
-          estimatedPrice: 15,
-          weatherNote: "Sonnig"
+          "timeSlot": "Nachmittag",
+          "title": "Kultureller Rundgang & Schloss/Museumsbesuch",
+          "description": "Besichtigung der wichtigsten Sehenswürdigkeiten der Stadt.",
+          "estimatedPrice": 15,
+          "weatherNote": "Überdacht"
+        },
+        {
+          "timeSlot": "Abend",
+          "title": "Fränkisches/Regionales Abendessen & Ausklang",
+          "description": "Typische Spezialitäten in einer traditionellen Gaststätte genießen.",
+          "estimatedPrice": 28,
+          "weatherNote": "Gemütliche Atmosphäre"
         }
       ]
     },
     {
-      dayNumber: 2,
-      title: "Zugspitze",
-      activities: [
-        {
-          timeSlot: "Morgen",
-          title: "Fahrt zur Zugspitze",
-          description: "Mit der Zahnradbahn auf den höchsten Berg Deutschlands",
-          estimatedPrice: 65,
-          weatherNote: "Klar"
-        }
-      ]
-    }
-  ]
-};
-
-export const generateItinerary = async (params: ItineraryParams) => {
-  if (!env.GEMINI_API_KEY) {
-    console.log('ℹ️ No GEMINI_API_KEY found, returning mock itinerary for München → Garmisch-Partenkirchen');
-    return MOCK_ITINERARY;
-  }
-
-  const prompt = `Erstelle einen detaillierten Reiseplan für einen Trip von ${params.origin} nach ${params.destination}.
-Dauer: ${params.duration || '2 Tage'}
-Budget: ${params.budget || 'Mittel'}
-Stil: ${params.style || 'Entspannt'}
-Bitte antworte ausschließlich im JSON-Format mit folgendem Schema:
-{
-  "destination": "${params.destination}",
-  "durationDays": 2,
-  "totalBudget": 0,
-  "co2SavedPercent": 75,
-  "days": [
-    {
-      "dayNumber": 1,
-      "title": "...",
+      "dayNumber": 2,
+      "title": "Natur, Aussicht & Abreise",
       "activities": [
         {
-          "timeSlot": "Morgen|Nachmittag|Abend",
-          "title": "...",
-          "description": "...",
-          "estimatedPrice": 0,
-          "weatherNote": "..."
+          "timeSlot": "Morgen",
+          "title": "Frühstück & Parkspaziergang",
+          "description": "Entspannter Start in den Tag im Hofgarten oder Stadtpark.",
+          "estimatedPrice": 10,
+          "weatherNote": "Frische Morgenluft"
+        },
+        {
+          "timeSlot": "Nachmittag",
+          "title": "Lokales Handwerk & Souvenirs vor der Rückfahrt",
+          "description": "Letzte Entdeckungen und entspannte Bahnrückreise.",
+          "estimatedPrice": 15,
+          "weatherNote": "Trocken"
         }
       ]
     }
@@ -86,7 +143,7 @@ Bitte antworte ausschließlich im JSON-Format mit folgendem Schema:
 }`;
 
   try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
     
     const response = await fetch(url, {
       method: 'POST',
@@ -104,13 +161,15 @@ Bitte antworte ausschließlich im JSON-Format mit folgendem Schema:
       throw new Error(data.error?.message || 'Gemini API Error');
     }
 
-    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (text) {
+      // Clean up markdown wrappers if Gemini returned them
+      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       return JSON.parse(text);
     }
     throw new Error('No content in Gemini response');
   } catch (error) {
-    console.error('Gemini error:', error);
+    console.error('[Gemini Error]:', error);
     return MOCK_ITINERARY; // Fallback even on error
   }
 };

@@ -29,12 +29,22 @@ export const generateTrip = async (req: Request, res: Response) => {
           destination,
           slug,
           duration,
-          dayByDay: itinerary.dayByDay,
+          days: itinerary.days,
+          totalBudget: itinerary.totalBudget,
+          co2SavedPercent: itinerary.co2SavedPercent,
         },
         { upsert: true, new: true }
       );
     } else {
-      tripDoc = { origin, destination, slug, duration, dayByDay: itinerary.dayByDay };
+      tripDoc = { 
+        origin, 
+        destination, 
+        slug, 
+        duration, 
+        days: itinerary.days,
+        totalBudget: itinerary.totalBudget,
+        co2SavedPercent: itinerary.co2SavedPercent,
+      };
     }
 
     res.json(tripDoc);
@@ -52,14 +62,26 @@ export const getTripBySlug = async (req: Request, res: Response) => {
         return res.json(trip);
       }
     }
-    // Mock fallback
+    
+    // Attempt to extract destination from slug (e.g. "muenchen-nach-ansbach")
+    const rawSlug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug || '';
+    const slugParts = rawSlug.split('-nach-');
+    const destination = slugParts.length === 2 ? slugParts[1] : rawSlug;
+    const formattedDestination = destination.charAt(0).toUpperCase() + destination.slice(1);
+    
+    // Use generateItinerary directly for mock or real response as fallback
+    const itinerary = await generateItinerary({ origin: 'Unknown', destination: formattedDestination });
+    
     res.json({
       slug: req.params.slug,
-      origin: 'Mock Origin',
-      destination: 'Mock Destination',
-      dayByDay: []
+      origin: slugParts.length === 2 ? slugParts[0] : 'Mock Origin',
+      destination: formattedDestination,
+      days: itinerary.days,
+      totalBudget: itinerary.totalBudget,
+      co2SavedPercent: itinerary.co2SavedPercent,
     });
   } catch (error) {
+    console.error('[Gemini Error]:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };

@@ -37,11 +37,23 @@ export default function PlanView() {
     fetchTrip()
   }, [slug])
 
+  // Extract destination cleanly for immediate UI feedback
+  const slugParts = slug?.split('-nach-') || []
+  const rawDestination = slugParts.length === 2 ? slugParts[1] : (slug || "Unbekannt")
+  const displayName = rawDestination.charAt(0).toUpperCase() + rawDestination.slice(1).replace(/-/g, ' ')
+
   if (loading) {
-    return <div style={{ padding: "40px", textAlign: "center" }}>Lade Reiseplan...</div>
+    return (
+      <div style={{ padding: "80px 20px", textAlign: "center" }}>
+        <h1 style={{ fontFamily: "'Fraunces', Georgia, serif", fontSize: "24px", color: "#1E3A2B", marginBottom: "16px" }}>
+          Plane Reise nach {displayName}...
+        </h1>
+        <p style={{ color: "#6B7280" }}>Unsere KI stellt die perfekten Verbindungen zusammen.</p>
+      </div>
+    )
   }
 
-  const seoTitle = trip?.seoTitle || "Dein Wochenendtrip | Gulliver"
+  const seoTitle = trip?.seoTitle || `Dein Wochenendtrip nach ${displayName} | Gulliver`
   const seoDesc = trip?.seoDescription || "Lass dich von unserem KI-Planer für deinen nächsten Wochenendtrip inspirieren."
   
   return (
