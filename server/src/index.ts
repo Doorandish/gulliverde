@@ -36,7 +36,7 @@ app.use('/api', apiRoutes);
 const frontendDistPath = path.resolve(__dirname, '../../front/dist');
 app.use(express.static(frontendDistPath));
 
-app.get('*', (req: Request, res: Response) => {
+app.get('{*path}', (req: Request, res: Response) => {
   // If request starts with /api, return 404
   if (req.path.startsWith('/api')) {
     res.status(404).json({ error: 'API route not found' });
