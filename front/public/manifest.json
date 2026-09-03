@@ -1,0 +1,17 @@
+{
+  "name": "Gulliver Reiseplaner",
+  "short_name": "Gulliver",
+  "description": "Dein KI-Reiseplaner für Wochenendtrips mit dem Zug",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#1E3A2B",
+  "background_color": "#F8FAF8",
+  "lang": "de",
+  "orientation": "any",
+  "categories": ["travel", "navigation"],
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

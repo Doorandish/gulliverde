@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gulliver.doorandish.app/sitemap.xml
+Sitemap: https://gulliver.doorandish.app/sitemap-trips.xml
+Sitemap: https://gulliver.doorandish.app/sitemap-events.xml
