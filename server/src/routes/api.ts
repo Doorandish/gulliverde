@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { generateTrip, getPopularRoutes, getTripBySlug, listTrips } from '../controllers/tripController.js';
 import { getEvent, getUpcomingEvents, listEvents } from '../controllers/eventController.js';
 import { redirectAffiliate } from '../controllers/affiliateController.js';
@@ -22,6 +22,8 @@ router.get('/events', cacheMiddleware(3600), listEvents);
 router.get('/affiliate/redirect', redirectAffiliate);
 
 // Health
-router.get('/health', (req, res) => res.json({ status: 'ok' }));
+router.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
 
 export default router;
