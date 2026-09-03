@@ -1,20 +1,17 @@
-export interface DayStop {
-  time: string
+export interface Activity {
+  timeSlot: string
   title: string
   description: string
-  cost: number
-  weather: string
-  type: 'transport' | 'activity' | 'food' | 'accommodation'
-  ctaLabel?: string
-  ctaUrl?: string
-  ctaColor?: string
+  estimatedPrice: number
+  weatherNote?: string
+  bookingUrl?: string
 }
 
 export interface DayPlan {
-  day: number
+  dayNumber: number
   title: string
   date?: string
-  stops: DayStop[]
+  activities: Activity[]
 }
 
 export interface Trip {
@@ -23,9 +20,12 @@ export interface Trip {
   destination: string
   slug: string
   duration: string
+  durationDays?: number
   trainLines: string[]
-  estimatedCost: number
-  dayByDay: DayPlan[]
+  totalBudget?: number
+  estimatedCost?: number
+  co2SavedPercent?: number
+  days: DayPlan[]
   seoTitle: string
   seoDescription: string
   locale: 'de' | 'en'

@@ -6,81 +6,12 @@ interface Props {
   trip?: Trip;
 }
 
-const fallbackItinerary = [
-  {
-    day: "Tag 1 — Samstag, 20. Sep",
-    slots: [
-      {
-        time: "Morgen",
-        weather: "☀️ 18°C, Sonnig",
-        price: "Ab 39€",
-        title: "Anreise München → Garmisch-Partenkirchen",
-        desc: "Direktzug ab München Hbf um 07:42 Uhr. Ankunft 09:14 Uhr. Frühstück im Bahnhofsbistro, dann Gepäck im Hotel ablegen.",
-        cta: { label: "Zugticket bei Omio", color: "#1E3A2B", url: getAffiliateUrl('omio', 'garmisch') },
-      },
-      {
-        time: "Nachmittag",
-        weather: "⛅ 16°C, Bewölkt",
-        price: "Kostenlos",
-        title: "Wanderung Philosophenweg & Eibsee",
-        desc: "3,5 km gemütliche Route am Seeufer entlang. Einkehr bei Eibsee-Hotel-Strandrestaurant empfohlen.",
-        cta: { label: "Karte öffnen", color: "#374151", url: "https://maps.google.com" },
-      },
-      {
-        time: "Abend",
-        weather: "🌙 12°C, Klar",
-        price: "45–65€ p.P.",
-        title: "Abendessen: Gasthof Fraundorfer",
-        desc: "Bayerische Livemusik und Schmankerl. Tischreservierung dringend empfohlen. Stammtisch-Atmosphäre pur.",
-        cta: { label: "Bei Booking reservieren", color: "#003580", url: getAffiliateUrl('booking', 'gasthof-fraundorfer') },
-      },
-    ],
-  },
-  {
-    day: "Tag 2 — Sonntag, 21. Sep",
-    slots: [
-      {
-        time: "Morgen",
-        weather: "☀️ 14°C, Frisch",
-        price: "63€ Kombi",
-        title: "Zugspitze mit der Zahnradbahn",
-        desc: "Abfahrt 08:30 Uhr ab Garmisch Zugspitzbahnhof. Gipfel auf 2.962m — atemberaubendes Bergpanorama auf drei Länder.",
-        cta: { label: "Ticket kaufen", color: "#1E3A2B", url: getAffiliateUrl('gyg', 'zugspitze') },
-      },
-      {
-        time: "Nachmittag",
-        weather: "🌤 17°C, Leicht windig",
-        price: "Frei",
-        title: "Bummel durch Garmisch & Bauernmarkt",
-        desc: "Lokale Erzeuger, Alpenkäse, Honig und handgemachte Holzarbeiten. Samstags findet der Wochenmarkt am Marienplatz statt.",
-        cta: { label: "Marktzeiten", color: "#374151", url: "#" },
-      },
-      {
-        time: "Abend",
-        weather: "🌙 10°C, Klar",
-        price: "Ab 79€",
-        title: "Rückfahrt Garmisch → München Hbf",
-        desc: "Letzter Direktzug 19:52 Uhr. Ankunft München 21:28 Uhr. Optional: Weiterfahrt zum Flughafen möglich.",
-        cta: { label: "Rückfahrt bei DB", color: "#CC0000", url: getAffiliateUrl('db', 'muenchen') },
-      },
-    ],
-  },
-];
-
 export default function Itinerary({ trip }: Props) {
-  const itinerary = trip?.dayByDay.map(d => ({
-    day: `Tag ${d.day} — ${d.date || d.title}`,
-    slots: d.stops.map(s => ({
-      time: s.time,
-      weather: s.weather,
-      price: `${s.cost}€`,
-      title: s.title,
-      desc: s.description,
-      cta: { label: s.ctaLabel || "Mehr", color: s.ctaColor || "#1E3A2B", url: s.ctaUrl || "#" }
-    }))
-  })) || fallbackItinerary;
-
-  const title = trip?.seoTitle || "Dein 2-Tage-Wochenendtrip nach Garmisch-Partenkirchen";
+  const title = trip?.seoTitle || `Dein ${trip?.durationDays || 2}-Tage-Wochenendtrip nach ${trip?.destination || "Garmisch-Partenkirchen"}`;
+  
+  // Safe parsing for cost to avoid negative bug
+  const displayCost = trip?.totalBudget ? Math.abs(trip.totalBudget) : (trip?.estimatedCost ? Math.abs(trip.estimatedCost) : 185);
+  const co2Saved = trip?.co2SavedPercent || 78;
 
   return (
     <main style={{ maxWidth: 780, margin: "0 auto", padding: "32px 16px 80px" }}>
@@ -96,7 +27,7 @@ export default function Itinerary({ trip }: Props) {
             KI-generiertes Reiseprogramm
           </div>
           <div style={{ fontSize: 14, fontWeight: 600 }}>
-            {trip?.destination || "Garmisch-Partenkirchen"} · {trip?.duration || "2 Tage"}
+            {trip?.destination || "Garmisch-Partenkirchen"} · {trip?.durationDays ? `${trip.durationDays} Tage` : "2 Tage"}
           </div>
         </div>
         <button style={{
@@ -129,9 +60,9 @@ export default function Itinerary({ trip }: Props) {
       {/* Summary chips */}
       <div style={{ display: "flex", gap: 10, marginBottom: 32, flexWrap: "wrap" }}>
         {[
-          { icon: "🚆", label: trip?.trainLines ? trip.trainLines.join(', ') : "2x Direktzug" },
-          { icon: "💶", label: `Gesamt: ~${trip?.estimatedCost || 185}€ p.P.` },
-          { icon: "🌱", label: "78% CO₂ gespart" },
+          { icon: "🚆", label: trip?.trainLines?.length ? trip.trainLines.join(', ') : "2x Direktzug" },
+          { icon: "💶", label: `Gesamt: ~${displayCost}€ p.P.` },
+          { icon: "🌱", label: `${co2Saved}% CO₂ gespart` },
           { icon: "⭐", label: "KI-Score: 9.2/10" },
         ].map(({ icon, label }) => (
           <div key={label} style={{
@@ -147,68 +78,54 @@ export default function Itinerary({ trip }: Props) {
       </div>
 
       {/* Day blocks */}
-      {itinerary.map(day => (
-        <div key={day.day} style={{
-          background: "#FFFFFF", border: "1px solid #E5E7EB",
-          borderRadius: 18, padding: 22, marginBottom: 20,
-        }}>
-          <h2 style={{
-            fontFamily: "'Fraunces', Georgia, serif",
-            fontSize: 18, fontWeight: 800, color: "#1E3A2B",
-            marginBottom: 18,
-          }}>{day.day}</h2>
-
-          {day.slots.map((slot, i) => (
-            <div key={slot.time + i} style={{
-              background: "#F9FAFB",
-              border: "1px solid #F3F4F6",
-              borderRadius: 12, padding: 14,
-              marginBottom: i < day.slots.length - 1 ? 10 : 0,
-            }}>
-              {/* Top row */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px",
-                    color: "#6B7280",
-                  }}>{slot.time}</span>
-                  <span style={{
-                    background: "#E8F5E9", color: "#1E3A2B",
-                    fontSize: 11, fontWeight: 600,
-                    padding: "2px 8px", borderRadius: 9999,
-                  }}>{slot.weather}</span>
+      {trip?.days && trip.days.length > 0 ? (
+        trip.days.map((day, idx) => (
+          <div key={idx} className="bg-white rounded-2xl p-6 mb-6 border border-gray-200 shadow-sm">
+            <h3 className="font-bold text-lg text-[#1E3A2B] mb-4">
+              Tag {day.dayNumber || idx + 1}: {day.title}
+            </h3>
+            <div className="space-y-3">
+              {day.activities?.map((act, aIdx) => (
+                <div key={aIdx} className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex flex-col gap-1">
+                  <div className="flex justify-between items-center text-xs font-semibold text-gray-500">
+                    <span>{act.timeSlot} {act.weatherNote ? `• ${act.weatherNote}` : ''}</span>
+                    {act.estimatedPrice > 0 && (
+                      <span className="text-[#1E3A2B] bg-emerald-100 px-2 py-0.5 rounded">
+                        ~{act.estimatedPrice}€
+                      </span>
+                    )}
+                  </div>
+                  <h4 className="font-bold text-gray-900 text-sm">{act.title}</h4>
+                  <p className="text-gray-600 text-xs leading-relaxed">{act.description}</p>
+                  
+                  {act.bookingUrl && (
+                    <a 
+                      href={act.bookingUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{
+                        background: "#1E3A2B",
+                        color: "#FFFFFF",
+                        border: "none", cursor: "pointer",
+                        fontSize: 11, fontWeight: 700,
+                        padding: "5px 12px", borderRadius: 8,
+                        marginTop: "8px",
+                        textDecoration: "none",
+                        display: "inline-block",
+                        width: "fit-content"
+                      }}
+                    >Buchen ↗</a>
+                  )}
                 </div>
-                <span style={{
-                  background: "#FFFBEB", color: "#92400E",
-                  fontSize: 11, fontWeight: 700,
-                  padding: "2px 8px", borderRadius: 6,
-                }}>{slot.price}</span>
-              </div>
-
-              <div style={{ fontSize: 14, fontWeight: 700, color: "#111827", marginBottom: 4 }}>{slot.title}</div>
-              <div style={{ fontSize: 13, color: "#6B7280", lineHeight: 1.6, marginBottom: 10 }}>{slot.desc}</div>
-
-              {slot.cta.url && (
-                <a 
-                  href={slot.cta.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  style={{
-                    background: slot.cta.color,
-                    color: "#FFFFFF",
-                    border: "none", cursor: "pointer",
-                    fontSize: 11, fontWeight: 700,
-                    padding: "5px 12px", borderRadius: 8,
-                    opacity: 0.92,
-                    textDecoration: "none",
-                    display: "inline-block"
-                  }}
-                >{slot.cta.label} ↗</a>
-              )}
+              ))}
             </div>
-          ))}
+          </div>
+        ))
+      ) : (
+        <div className="p-8 text-center text-gray-500 bg-white rounded-xl border">
+          Kein detaillierter Tagesablauf verfügbar.
         </div>
-      ))}
+      )}
 
       {/* Bottom CTA */}
       <div style={{

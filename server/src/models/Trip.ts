@@ -8,21 +8,21 @@ const tripSchema = new mongoose.Schema(
     duration: String,
     trainLines: [String],
     estimatedCost: Number,
-    dayByDay: [
+    totalBudget: Number,
+    co2SavedPercent: Number,
+    days: [
       {
-        day: Number,
+        dayNumber: Number,
         title: String,
-        stops: [
+        date: String,
+        activities: [
           {
-            time: String,
+            timeSlot: String,
             title: String,
             description: String,
-            cost: Number,
-            weather: String,
-            type: {
-              type: String,
-              enum: ['transport', 'activity', 'food', 'accommodation'],
-            },
+            estimatedPrice: Number,
+            weatherNote: String,
+            bookingUrl: String,
           },
         ],
       },

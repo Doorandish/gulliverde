@@ -11,40 +11,41 @@ interface ItineraryParams {
 }
 
 const MOCK_ITINERARY = {
-  dayByDay: [
+  destination: "Garmisch-Partenkirchen",
+  durationDays: 2,
+  totalBudget: 125,
+  co2SavedPercent: 78,
+  days: [
     {
-      day: 1,
+      dayNumber: 1,
       title: "Ankunft & Altstadt",
-      stops: [
+      activities: [
         {
-          time: "10:00",
+          timeSlot: "Morgen",
           title: "Zug nach Garmisch-Partenkirchen",
           description: "Entspannte Zugfahrt von München",
-          cost: 25,
-          weather: "Sonnig",
-          type: "transport"
+          estimatedPrice: 25,
+          weatherNote: "Sonnig"
         },
         {
-          time: "13:00",
+          timeSlot: "Nachmittag",
           title: "Mittagessen im Wirtshaus",
           description: "Bayerische Spezialitäten genießen",
-          cost: 15,
-          weather: "Sonnig",
-          type: "food"
+          estimatedPrice: 15,
+          weatherNote: "Sonnig"
         }
       ]
     },
     {
-      day: 2,
+      dayNumber: 2,
       title: "Zugspitze",
-      stops: [
+      activities: [
         {
-          time: "09:00",
+          timeSlot: "Morgen",
           title: "Fahrt zur Zugspitze",
           description: "Mit der Zahnradbahn auf den höchsten Berg Deutschlands",
-          cost: 65,
-          weather: "Klar",
-          type: "activity"
+          estimatedPrice: 65,
+          weatherNote: "Klar"
         }
       ]
     }
@@ -63,18 +64,21 @@ Budget: ${params.budget || 'Mittel'}
 Stil: ${params.style || 'Entspannt'}
 Bitte antworte ausschließlich im JSON-Format mit folgendem Schema:
 {
-  "dayByDay": [
+  "destination": "${params.destination}",
+  "durationDays": 2,
+  "totalBudget": 0,
+  "co2SavedPercent": 75,
+  "days": [
     {
-      "day": 1,
+      "dayNumber": 1,
       "title": "...",
-      "stops": [
+      "activities": [
         {
-          "time": "...",
+          "timeSlot": "Morgen|Nachmittag|Abend",
           "title": "...",
           "description": "...",
-          "cost": 0,
-          "weather": "...",
-          "type": "transport|activity|food|accommodation"
+          "estimatedPrice": 0,
+          "weatherNote": "..."
         }
       ]
     }

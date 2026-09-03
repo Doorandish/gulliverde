@@ -58,12 +58,12 @@ export default function PlanView() {
             "description": trip.seoDescription,
             "itinerary": {
               "@type": "ItemList",
-              "itemListElement": trip.dayByDay.map((d, i) => ({
+              "itemListElement": trip.days?.map((d, i) => ({
                 "@type": "ListItem",
                 "position": i + 1,
                 "item": {
                   "@type": "TouristAttraction",
-                  "name": `Tag ${d.day}: ${d.title}`
+                  "name": `Tag ${d.dayNumber}: ${d.title}`
                 }
               }))
             }
