@@ -13,6 +13,13 @@ export default function Itinerary({ trip }: Props) {
   const displayCost = trip?.totalBudget ? Math.abs(trip.totalBudget) : (trip?.estimatedCost ? Math.abs(trip.estimatedCost) : 185);
   const co2Saved = trip?.co2SavedPercent || 78;
 
+  const getTimeIcon = (slot: string) => {
+    if (slot.toLowerCase().includes('morgen')) return '☕';
+    if (slot.toLowerCase().includes('nachmittag')) return '🏛️';
+    if (slot.toLowerCase().includes('abend')) return '🍽️';
+    return '🚶';
+  };
+
   return (
     <main style={{ maxWidth: 780, margin: "0 auto", padding: "32px 16px 80px" }}>
       {/* Sticky viral bar */}
@@ -61,7 +68,7 @@ export default function Itinerary({ trip }: Props) {
       <div style={{ display: "flex", gap: 10, marginBottom: 32, flexWrap: "wrap" }}>
         {[
           { icon: "🚆", label: trip?.trainLines?.length ? trip.trainLines.join(', ') : "2x Direktzug" },
-          { icon: "💶", label: `Gesamt: ~${displayCost}€ p.P.` },
+          { icon: "💶", label: `Gesamt: ~${displayCost} € p.P.` },
           { icon: "🌱", label: `${co2Saved}% CO₂ gespart` },
           { icon: "⭐", label: "KI-Score: 9.2/10" },
         ].map(({ icon, label }) => (
@@ -88,34 +95,24 @@ export default function Itinerary({ trip }: Props) {
               {day.activities?.map((act, aIdx) => (
                 <div key={aIdx} className="bg-gray-50 rounded-xl p-4 border border-gray-100 flex flex-col gap-1">
                   <div className="flex justify-between items-center text-xs font-semibold text-gray-500">
-                    <span>{act.timeSlot} {act.weatherNote ? `• ${act.weatherNote}` : ''}</span>
-                    {act.estimatedPrice > 0 && (
+                    <span className="flex items-center gap-1">
+                      <span className="text-sm">{getTimeIcon(act.timeSlot)}</span> {act.timeSlot} {act.weatherNote ? `• ${act.weatherNote}` : ''}
+                    </span>
+                    {act.estimatedPrice !== undefined && (
                       <span className="text-[#1E3A2B] bg-emerald-100 px-2 py-0.5 rounded">
-                        ~{act.estimatedPrice}€
+                        ~{Math.abs(act.estimatedPrice)} €
                       </span>
                     )}
                   </div>
-                  <h4 className="font-bold text-gray-900 text-sm">{act.title}</h4>
+                  <h4 className="font-bold text-gray-900 text-sm mt-1">{act.title}</h4>
                   <p className="text-gray-600 text-xs leading-relaxed">{act.description}</p>
                   
-                  {act.bookingUrl && (
-                    <a 
-                      href={act.bookingUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        background: "#1E3A2B",
-                        color: "#FFFFFF",
-                        border: "none", cursor: "pointer",
-                        fontSize: 11, fontWeight: 700,
-                        padding: "5px 12px", borderRadius: 8,
-                        marginTop: "8px",
-                        textDecoration: "none",
-                        display: "inline-block",
-                        width: "fit-content"
-                      }}
-                    >Buchen ↗</a>
-                  )}
+                  <a 
+                    href={act.bookingUrl || `https://www.getyourguide.com/s/?q=${encodeURIComponent(act.title)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-emerald-700 hover:underline font-medium mt-1 inline-block"
+                  >Aktivität ansehen ↗</a>
                 </div>
               ))}
             </div>

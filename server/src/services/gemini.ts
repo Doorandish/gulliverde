@@ -12,6 +12,7 @@ interface ItineraryParams {
 
 export const generateItinerary = async (params: ItineraryParams) => {
   const destination = params.destination;
+  console.log("GEMINI KEY PRESENT:", !!env.GEMINI_API_KEY);
   console.log(`[Gemini] Generating itinerary for destination: ${destination}`);
 
   const MOCK_ITINERARY = {
@@ -34,40 +35,6 @@ export const generateItinerary = async (params: ItineraryParams) => {
             description: "Bummel durch die historischen Gassen und regionaler Frühstücksstopp.",
             estimatedPrice: 12,
             weatherNote: "Ideal bei jedem Wetter"
-          },
-          {
-            timeSlot: "Nachmittag",
-            title: "Kultureller Rundgang & Schloss/Museumsbesuch",
-            description: "Besichtigung der wichtigsten Sehenswürdigkeiten der Stadt.",
-            estimatedPrice: 15,
-            weatherNote: "Überdacht"
-          },
-          {
-            timeSlot: "Abend",
-            title: "Fränkisches/Regionales Abendessen & Ausklang",
-            description: "Typische Spezialitäten in einer traditionellen Gaststätte genießen.",
-            estimatedPrice: 28,
-            weatherNote: "Gemütliche Atmosphäre"
-          }
-        ]
-      },
-      {
-        dayNumber: 2,
-        title: "Natur, Aussicht & Abreise",
-        activities: [
-          {
-            timeSlot: "Morgen",
-            title: "Frühstück & Parkspaziergang",
-            description: "Entspannter Start in den Tag im Hofgarten oder Stadtpark.",
-            estimatedPrice: 10,
-            weatherNote: "Frische Morgenluft"
-          },
-          {
-            timeSlot: "Nachmittag",
-            title: "Lokales Handwerk & Souvenirs vor der Rückfahrt",
-            description: "Letzte Entdeckungen und entspannte Bahnrückreise.",
-            estimatedPrice: 15,
-            weatherNote: "Trocken"
           }
         ]
       }
@@ -80,8 +47,8 @@ export const generateItinerary = async (params: ItineraryParams) => {
   }
 
   const prompt = `You are an expert travel planner for Germany and Europe. 
-Generate a comprehensive 2-day weekend itinerary for the destination "${destination}".
-Return ONLY a valid raw JSON object (without markdown blocks) matching this format:
+Generate a 2-day realistic itinerary for the city of ${destination}. Use real, famous locations in ${destination} (e.g. if Berlin: Museumsinsel, Brandenburger Tor, Kreuzberg - DO NOT use generic Franconian/Bavarian text). 
+Return strict JSON with positive numbers for prices. Return ONLY a valid raw JSON object (without markdown blocks) matching this format:
 {
   "destination": "${destination}",
   "durationDays": 2,
@@ -94,48 +61,14 @@ Return ONLY a valid raw JSON object (without markdown blocks) matching this form
   "days": [
     {
       "dayNumber": 1,
-      "title": "Ankunft & Altstadt-Erkundung",
+      "title": "Ankunft & Erkundung",
       "activities": [
         {
           "timeSlot": "Morgen",
-          "title": "Ankunft am Hauptbahnhof & Kaffee in der Altstadt",
-          "description": "Bummel durch die historischen Gassen und regionaler Frühstücksstopp.",
+          "title": "...",
+          "description": "...",
           "estimatedPrice": 12,
-          "weatherNote": "Ideal bei jedem Wetter"
-        },
-        {
-          "timeSlot": "Nachmittag",
-          "title": "Kultureller Rundgang & Schloss/Museumsbesuch",
-          "description": "Besichtigung der wichtigsten Sehenswürdigkeiten der Stadt.",
-          "estimatedPrice": 15,
-          "weatherNote": "Überdacht"
-        },
-        {
-          "timeSlot": "Abend",
-          "title": "Fränkisches/Regionales Abendessen & Ausklang",
-          "description": "Typische Spezialitäten in einer traditionellen Gaststätte genießen.",
-          "estimatedPrice": 28,
-          "weatherNote": "Gemütliche Atmosphäre"
-        }
-      ]
-    },
-    {
-      "dayNumber": 2,
-      "title": "Natur, Aussicht & Abreise",
-      "activities": [
-        {
-          "timeSlot": "Morgen",
-          "title": "Frühstück & Parkspaziergang",
-          "description": "Entspannter Start in den Tag im Hofgarten oder Stadtpark.",
-          "estimatedPrice": 10,
-          "weatherNote": "Frische Morgenluft"
-        },
-        {
-          "timeSlot": "Nachmittag",
-          "title": "Lokales Handwerk & Souvenirs vor der Rückfahrt",
-          "description": "Letzte Entdeckungen und entspannte Bahnrückreise.",
-          "estimatedPrice": 15,
-          "weatherNote": "Trocken"
+          "weatherNote": "..."
         }
       ]
     }
@@ -163,13 +96,12 @@ Return ONLY a valid raw JSON object (without markdown blocks) matching this form
 
     let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
     if (text) {
-      // Clean up markdown wrappers if Gemini returned them
       text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
       return JSON.parse(text);
     }
     throw new Error('No content in Gemini response');
   } catch (error) {
-    console.error('[Gemini Error]:', error);
-    return MOCK_ITINERARY; // Fallback even on error
+    console.error('[GEMINI API FAILURE]', error);
+    return MOCK_ITINERARY;
   }
 };
