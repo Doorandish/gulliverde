@@ -10,75 +10,80 @@ interface ItineraryParams {
   weather?: any;
 }
 
-export const generateItinerary = async (params: ItineraryParams) => {
-  const destination = params.destination;
-  console.log("GEMINI KEY PRESENT:", !!env.GEMINI_API_KEY);
-  console.log(`[Gemini] Generating itinerary for destination: ${destination}`);
-
-  const MOCK_ITINERARY = {
-    destination: destination,
-    durationDays: 2,
-    totalBudget: 140,
-    co2SavedPercent: 78,
-    trainDetails: {
-      recommendedRoute: "Direktverbindung / RE / ICE",
-      ticketStartingPrice: 39
-    },
-    days: [
-      {
-        dayNumber: 1,
-        title: "Ankunft & Altstadt-Erkundung",
-        activities: [
-          {
-            timeSlot: "Morgen",
-            title: "Ankunft am Hauptbahnhof & Kaffee in der Altstadt",
-            description: "Bummel durch die historischen Gassen und regionaler Frühstücksstopp.",
-            estimatedPrice: 12,
-            weatherNote: "Ideal bei jedem Wetter"
-          }
-        ]
-      }
-    ]
-  };
-
-  if (!env.GEMINI_API_KEY) {
-    console.log(`ℹ️ No GEMINI_API_KEY found, returning mock itinerary for ${destination}`);
-    return MOCK_ITINERARY;
+export async function generateTripPlan(destination: string) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    console.error("[Gemini] ERROR: GEMINI_API_KEY is not defined in environment variables.");
+    throw new Error("Missing GEMINI_API_KEY");
   }
 
-  const prompt = `You are an expert travel planner for Germany and Europe. 
-Generate a 2-day realistic itinerary for the city of ${destination}. Use real, famous locations in ${destination} (e.g. if Berlin: Museumsinsel, Brandenburger Tor, Kreuzberg - DO NOT use generic Franconian/Bavarian text). 
-Return strict JSON with positive numbers for prices. Return ONLY a valid raw JSON object (without markdown blocks) matching this format:
+  const prompt = `Du bist ein präziser deutscher Reiseexperte für Städtetrips mit der Bahn.
+Erstelle einen detaillierten 2-Tage-Reiseplan für "${destination}".
+Berücksichtige echte, berühmte Orte und Sehenswürdigkeiten in "${destination}".
+Alle Preise müssen positive Zahlen sein (z.B. 15, nicht -15).
+
+Gib das Ergebnis AUSSCHLIESSLICH als valides JSON-Objekt ohne Markdown-Codeblöcke (kein \`\`\`json) mit genau dieser Struktur zurück:
 {
   "destination": "${destination}",
   "durationDays": 2,
-  "totalBudget": 140,
-  "co2SavedPercent": 78,
-  "trainDetails": {
-    "recommendedRoute": "Direktverbindung / RE / ICE",
-    "ticketStartingPrice": 39
-  },
+  "totalBudget": 145,
+  "co2SavedPercent": 75,
   "days": [
     {
       "dayNumber": 1,
-      "title": "Ankunft & Erkundung",
+      "title": "Tag 1: Highlights & Kultur",
       "activities": [
         {
           "timeSlot": "Morgen",
-          "title": "...",
-          "description": "...",
+          "title": "Konkrete Sehenswürdigkeit in ${destination}",
+          "description": "Detaillierte Beschreibung...",
           "estimatedPrice": 12,
-          "weatherNote": "..."
+          "weatherNote": "Überdacht / Draußen"
+        },
+        {
+          "timeSlot": "Nachmittag",
+          "title": "Zweite konkrete Attraktion",
+          "description": "Detaillierte Beschreibung...",
+          "estimatedPrice": 18,
+          "weatherNote": "Trocken"
+        },
+        {
+          "timeSlot": "Abend",
+          "title": "Abendessen & Nachtleben in ${destination}",
+          "description": "Empfehlung für Viertel oder Restaurant...",
+          "estimatedPrice": 25,
+          "weatherNote": "Gemütlich"
+        }
+      ]
+    },
+    {
+      "dayNumber": 2,
+      "title": "Tag 2: Panorama, Natur & Abreise",
+      "activities": [
+        {
+          "timeSlot": "Morgen",
+          "title": "Frühstück & Spaziergang an bekanntem Ort",
+          "description": "Beschreibung...",
+          "estimatedPrice": 10,
+          "weatherNote": "Frisch"
+        },
+        {
+          "timeSlot": "Nachmittag",
+          "title": "Abschluss-Erkundung vor der Bahnrückfahrt",
+          "description": "Beschreibung...",
+          "estimatedPrice": 15,
+          "weatherNote": "Flexibel"
         }
       ]
     }
   ]
 }`;
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${env.GEMINI_API_KEY}`;
-    
-    const response = await fetch(url, {
+  console.log(`[Gemini] Calling Gemini API for: ${destination}...`);
+
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+    {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -87,21 +92,35 @@ Return strict JSON with positive numbers for prices. Return ONLY a valid raw JSO
           response_mime_type: "application/json"
         }
       })
-    });
-
-    const data = await response.json();
-    if (!response.ok) {
-      throw new Error(data.error?.message || 'Gemini API Error');
     }
+  );
 
-    let text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (text) {
-      text = text.replace(/```json/gi, '').replace(/```/g, '').trim();
-      return JSON.parse(text);
-    }
-    throw new Error('No content in Gemini response');
-  } catch (error) {
-    console.error('[GEMINI API FAILURE]', error);
-    return MOCK_ITINERARY;
+  if (!response.ok) {
+    const errText = await response.text();
+    console.error(`[Gemini API Error] Status: ${response.status} - ${errText}`);
+    throw new Error(`Gemini API failed with status ${response.status}`);
   }
-};
+
+  const data = await response.json();
+  const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+  if (!rawText) {
+    throw new Error("Empty response from Gemini API");
+  }
+
+  // Sanitize any markdown wrappers if returned
+  const cleanedJson = rawText.replace(/```json/gi, '').replace(/```/g, '').trim();
+  const parsed = JSON.parse(cleanedJson);
+
+  // Guarantee positive numbers for prices
+  parsed.totalBudget = Math.abs(parsed.totalBudget || 140);
+  if (parsed.days) {
+    parsed.days.forEach((d: any) => {
+      d.activities?.forEach((a: any) => {
+        a.estimatedPrice = Math.abs(a.estimatedPrice || 0);
+      });
+    });
+  }
+
+  return parsed;
+}

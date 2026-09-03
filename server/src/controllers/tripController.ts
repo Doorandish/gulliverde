@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { generateItinerary } from '../services/gemini.js';
+import { generateTripPlan } from '../services/gemini.js';
 import { buildTripSlug } from '../utils/slugify.js';
 import { Trip } from '../models/Trip.js';
 import mongoose from 'mongoose';
@@ -18,7 +18,7 @@ export const generateTrip = async (req: Request, res: Response) => {
     const { origin, destination, duration } = req.body;
     const slug = buildTripSlug(origin, destination);
 
-    const itinerary = await generateItinerary(req.body);
+    const itinerary = await generateTripPlan(destination);
     
     let tripDoc;
     if (mongoose.connection.readyState === 1) {
@@ -49,7 +49,7 @@ export const generateTrip = async (req: Request, res: Response) => {
 
     res.json(tripDoc);
   } catch (error) {
-    console.error('Error generating trip:', error);
+    console.error('[TripController Error]:', error);
     res.status(500).json({ error: 'Failed to generate trip' });
   }
 };
@@ -63,14 +63,12 @@ export const getTripBySlug = async (req: Request, res: Response) => {
       }
     }
     
-    // Attempt to extract destination from slug (e.g. "muenchen-nach-ansbach")
     const rawSlug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug || '';
     const slugParts = rawSlug.split('-nach-');
     const destination = slugParts.length === 2 ? slugParts[1] : rawSlug;
     const formattedDestination = destination.charAt(0).toUpperCase() + destination.slice(1);
     
-    // Use generateItinerary directly for mock or real response as fallback
-    const itinerary = await generateItinerary({ origin: 'Unknown', destination: formattedDestination });
+    const itinerary = await generateTripPlan(formattedDestination);
     
     res.json({
       slug: req.params.slug,
@@ -81,7 +79,7 @@ export const getTripBySlug = async (req: Request, res: Response) => {
       co2SavedPercent: itinerary.co2SavedPercent,
     });
   } catch (error) {
-    console.error('[Gemini Error]:', error);
+    console.error('[TripController Error]:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
@@ -94,6 +92,7 @@ export const listTrips = async (req: Request, res: Response) => {
     }
     res.json([]);
   } catch (error) {
+    console.error('[TripController Error]:', error);
     res.status(500).json({ error: 'Server error' });
   }
 };
