@@ -58,9 +58,11 @@ export const getTripBySlug = async (req: Request, res: Response) => {
   try {
     if (mongoose.connection.readyState === 1) {
       const trip = await Trip.findOne({ slug: req.params.slug });
-      if (trip) {
+      // Only return the cached trip if it has the new valid schema (days array with items)
+      if (trip && trip.days && trip.days.length > 0) {
         return res.json(trip);
       }
+      // If trip exists but is broken/old schema, we fall through and regenerate it.
     }
     
     const rawSlug = Array.isArray(req.params.slug) ? req.params.slug[0] : req.params.slug || '';
