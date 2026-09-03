@@ -3,11 +3,16 @@ import cors from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import morgan from 'morgan';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { env } from './config/env.js';
 import { connectDB } from './config/db.js';
 import './config/redis.js'; // Initialize Redis client
 import apiRoutes from './routes/api.js';
 import seoRoutes from './routes/seo.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -26,6 +31,19 @@ app.use('/', seoRoutes);
 
 // API routes
 app.use('/api', apiRoutes);
+
+// Serve frontend static files
+const frontendDistPath = path.resolve(__dirname, '../../front/dist');
+app.use(express.static(frontendDistPath));
+
+app.get('*', (req: Request, res: Response) => {
+  // If request starts with /api, return 404
+  if (req.path.startsWith('/api')) {
+    res.status(404).json({ error: 'API route not found' });
+    return;
+  }
+  res.sendFile(path.join(frontendDistPath, 'index.html'));
+});
 
 // Global Error Handler
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
